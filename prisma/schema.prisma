@@ -13,8 +13,8 @@ datasource db {
 
 model User {
   id    Int     @id @default(autoincrement())
-  telegramId Int @unique
+  telegramId BigInt @unique
   role String @default("user")
   name  String?
-  subscribe Int @default(0)
+  subscribe BigInt @default(0)
 }

@@ -49,11 +49,11 @@ bot.command('start', async(ctx) =>  {
 
 bot.command('profile', async(ctx) =>  {
     const user = await profileUser(ctx.message.from.id, ctx.message.from.first_name)
-    const checkSub = await checkSubscribe(ctx.message.from.id)
+    const checkSub = await checkSubscribe(ctx.message.from.id, ctx.message.from.first_name)
     let subscribe = 'Не активна 😢'
     let buttonText = 'Оформить'
     if (checkSub) {
-        const checkTime = user.subscribe - nowTimeSecond()
+        const checkTime = Number(user.subscribe) - nowTimeSecond()
         subscribe = convertSeconds(checkTime)
         buttonText = 'Продлить'
     }
@@ -77,7 +77,7 @@ bot.action('madirus', handleSelectedVoice('madirus','👨🏼 Мадирос'))
 
 bot.on(message('voice'), async (ctx) => {
     try {
-        const checkPay = await checkSubscribe(ctx.from.id)
+        const checkPay = await checkSubscribe(ctx.from.id, ctx.from.first_name)
         if(!checkPay) { return replaySubscribe(ctx) }
 
         const voice = await ctx.telegram.getFileLink(ctx.message.voice.file_id)
@@ -99,7 +99,7 @@ bot.on(message('voice'), async (ctx) => {
 bot.on(message('text'), async (ctx) => {
     try {
         ctx.session ??= { voice: 'ermil' }
-        const checkPay = await checkSubscribe(ctx.from.id)
+        const checkPay = await checkSubscribe(ctx.from.id, ctx.from.first_name)
         if(!checkPay) { return replaySubscribe(ctx) }
         const text = ctx.message.text
         const { message_id } = await ctx.reply('Обработка...', {

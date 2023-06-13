@@ -1,10 +1,10 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "telegramId" INTEGER NOT NULL,
+    "telegramId" BIGINT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'user',
     "name" TEXT,
-    "subscribe" INTEGER NOT NULL DEFAULT 0
+    "subscribe" BIGINT NOT NULL DEFAULT 0
 );
 
 -- CreateIndex
