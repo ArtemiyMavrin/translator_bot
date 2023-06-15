@@ -56,14 +56,14 @@ export async function checkSubscribe(userID, name) {
 export async function subscribePay(userID, name, days) {
     try {
         await db.$connect()
-        const user = await profileUser(userID, name)
-        const addSubTime = dayToSeconds(days) + Number(user.subscribe)
         await db.user.update({
             where: {
                 telegramId: userID
             },
             data: {
-                subscribe: addSubTime
+                subscribe: {
+                    increment: dayToSeconds(days)
+                }
             },
         })
     } catch (error) {

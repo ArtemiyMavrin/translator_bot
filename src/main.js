@@ -5,7 +5,7 @@ import process from 'nodemon'
 import { handlePlan, handleSelectedVoice } from './handles/actions.js'
 import { commands, handleCommandProfile, handleCommandStart, handleCommandVoice } from './handles/commands.js'
 import { handleMessageText, handleMessageVoice } from './handles/messages.js'
-import { handlePay, successfulPayment } from './handles/pay.js'
+import { handlePay, preCheckoutQuery, successfulPayment } from './handles/pay.js'
 
 const bot = new Telegraf(config.get('TELEGRAM_TOKEN'))
 
@@ -27,7 +27,7 @@ bot.action('madirus', handleSelectedVoice('madirus','👨🏼 Мадирос',))
 bot.action('profile', handleCommandProfile)
 
 bot.action('pay', handlePay)
-bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true))
+bot.on('pre_checkout_query', preCheckoutQuery)
 bot.on('successful_payment', successfulPayment)
 
 bot.on(message('voice'), handleMessageVoice)
