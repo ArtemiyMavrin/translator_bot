@@ -21,6 +21,10 @@ export function addSubSeconds(days) {
     return nowTimeSecond() + (days * 24 * 60 * 60)
 }
 
+export function dayToSeconds(days) {
+    return days * 24 * 60 * 60
+}
+
 export async function replaySubscribe(ctx) {
     return await ctx.replyWithMarkdown(`*Бот не доступен*
     
