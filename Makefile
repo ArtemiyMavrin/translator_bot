@@ -1,4 +1,8 @@
 build:
 	docker build -t trnsbot .
 run:
-	docker run -d -p 3000:3000 --restart unless-stopped trnsbot
+	docker run -d -p 3000:3000 -v "/translator_bot/src/database:/app/src/database" --restart unless-stopped --name trnsbot trnsbot
+dev:
+	docker run -d -p 3000:3000 -v "/TranslatorBOT/src/database:/app/src/database" --restart unless-stopped --name trnsbot trnsbot
+stop:
+	docker stop trnsbot
