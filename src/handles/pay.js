@@ -45,7 +45,7 @@ export const preCheckoutQuery = (ctx) => {
 
 export const successfulPayment = async (ctx) => {
     await subscribePay(ctx.from.id, ctx.from.first_name,30)
-    await ctx.reply('Подписка оплачена ✅ \n\n ' +
+    await ctx.reply('Подписка оплачена ✅ \n\n' +
         'Вы можете проверить срок действия подписки в профиле',
         Markup.inlineKeyboard([Markup.button.callback(`👤 Открыть профиль`, 'profile')]))
 }
