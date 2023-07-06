@@ -14,7 +14,3 @@ update:
 del:
 	docker stop trnsbot
 	docker rm trnsbot
-git:
-	git stash
-	git pull
-	git stash pop
