@@ -2,6 +2,7 @@ import config from 'config'
 import axios from 'axios'
 import EasyYandexS3 from 'easy-yandex-s3'
 import stream from 'stream'
+import fs from 'fs'
 
 
 
@@ -11,14 +12,12 @@ class SpeechKit {
         if (!apiKey || !idKey || !accessKey || !backetName) {
             throw new Error('Недостаточно аргументов для создания экземпляра класса SpeechKit')
         }
-
         this.apiKey = apiKey
         this.idKey = idKey
         this.accessKey = accessKey
         this.backetName = backetName
         this.urlSynthesize = "https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize"
         this.urlRecognize = "https://transcribe.api.cloud.yandex.net/speech/stt/v2/longRunningRecognize"
-
         this.s3 = new EasyYandexS3({
             auth: {
                 accessKeyId: this.idKey,
@@ -29,10 +28,30 @@ class SpeechKit {
 
     }
 
-
-    async uploadVoice (voiceStream, fileName) {
-
+    async uploadLocalVoice (voiceLink, fileName) {
         try {
+            const upload = await this.s3.Upload(
+                {
+                    path: voiceLink,
+                    name: `${fileName}.ogg`
+                },
+                '/voices/'
+            )
+            return upload.Location
+        } catch (error) {
+            console.error('Ошибка Загрузки Ogg файла на сервер: ', error.message)
+            throw new Error('Ошибка Загрузки локального Ogg файла на сервер')
+        }
+    }
+
+    async uploadUrlVoice (voiceLink, fileName) {
+        try {
+            const response = await axios({
+                method: 'get',
+                url: voiceLink,
+                responseType: 'stream'
+            })
+            const voiceStream = response.data
             const passThroughStream = new stream.PassThrough()
             voiceStream.pipe(passThroughStream)
             const upload = await this.s3.Upload(
@@ -45,20 +64,12 @@ class SpeechKit {
             return upload.Location
         } catch (error) {
             console.error('Ошибка Загрузки Ogg файла на сервер: ', error.message)
-            throw new Error('Ошибка Загрузки Ogg файла на сервер')
+            throw new Error('Ошибка Загрузки Внешнего Ogg файла на сервер')
         }
-
     }
 
-    async voiceToMessage(voiceLink, voiceId) {
+    async voiceToMessage(voiceUrlCloud, voiceId) {
         try {
-            const response = await axios({
-                method: 'get',
-                url: voiceLink,
-                responseType: "stream"
-            })
-            const voiceStream = response.data
-            const voiceUrl = await this.uploadVoice(voiceStream, voiceId)
             const body = {
                 "config": {
                     "specification": {
@@ -67,7 +78,7 @@ class SpeechKit {
                     }
                 },
                 "audio": {
-                    "uri": `${voiceUrl}`
+                    "uri": `${voiceUrlCloud}`
                 }
             }
             const header = {
@@ -99,11 +110,12 @@ class SpeechKit {
                     await new Promise((resolve) => setTimeout(resolve, 1000))
                 }
             }
-            await this.s3.Remove(`/voices/${voiceId}.ogg`)
             return transcriptionChunks.join(' ')
         } catch (error) {
             console.error('Ошибка Распознавания речи: ', error.message)
-            throw new Error('Ошибка Распознавания речи')
+            throw error
+        } finally {
+            await this.s3.Remove(`/voices/${voiceId}.ogg`)
         }
     }
 
@@ -116,7 +128,6 @@ class SpeechKit {
             params.append('format', 'oggopus')
             params.append('emotion', 'good')
             params.append('speed', '1.0')
-
             const response = await axios({
                 method: 'POST',
                 url: this.urlSynthesize,
@@ -126,15 +137,11 @@ class SpeechKit {
                 },
                 data: params
             })
-
             return response.data
-
         } catch (error) {
             console.error('Ошибка синтеза речи ',error.message)
             throw new Error('Ошибка синтеза речи')
         }
     }
-
 }
-
 export const speechKit = new SpeechKit(config.get('YANDEX_CLOUD_API_KEY'),config.get('YANDEX_CLOUD_ID_KEY'),config.get('YANDEX_CLOUD_ACCESS_KEY'),config.get('BUCKET_NAME'))

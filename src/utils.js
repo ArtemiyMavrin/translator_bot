@@ -1,7 +1,16 @@
 import { Markup } from 'telegraf'
 import config from 'config'
+import { unlink } from 'fs/promises'
 
 const price = config.get('ONE_PRICE')
+
+export async function removeFile(path) {
+    try {
+        await unlink(path)
+    } catch (e) {
+        console.log('Error while removing file', e.message)
+    }
+}
 
 export function nowTimeSecond() {
     const currentDate = new Date()

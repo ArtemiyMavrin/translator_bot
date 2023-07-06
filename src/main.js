@@ -4,7 +4,7 @@ import config  from 'config'
 import process from 'nodemon'
 import { handlePlan, handleSelectedVoice } from './handles/actions.js'
 import { commands, handleCommandProfile, handleCommandStart, handleCommandVoice } from './handles/commands.js'
-import { handleMessageText, handleMessageVoice } from './handles/messages.js'
+import { handleMessageText, handleMessageVideoNote, handleMessageVoice } from './handles/messages.js'
 import { handlePay, preCheckoutQuery, successfulPayment } from './handles/pay.js'
 
 const bot = new Telegraf(config.get('TELEGRAM_TOKEN'))
@@ -32,6 +32,9 @@ bot.on('successful_payment', successfulPayment)
 
 bot.on(message('voice'), handleMessageVoice)
 bot.on(message('text'), handleMessageText)
+bot.on(message('photo'), handleMessageText)
+bot.on(message('video_note'), handleMessageVideoNote)
+bot.on(message('sticker'), ctx => {ctx.reply('Прикольный стикер')})
 
 bot.launch()
 
