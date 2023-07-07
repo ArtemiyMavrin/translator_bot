@@ -55,10 +55,11 @@ export async function checkSubscribe(userID, name) {
 
 export async function subscribePay(userID, name, days) {
     try {
+        const telegramId = BigInt(userID)
         await db.$connect()
         await db.user.update({
             where: {
-                telegramId: userID
+                telegramId: telegramId
             },
             data: {
                 subscribe: {
@@ -68,6 +69,33 @@ export async function subscribePay(userID, name, days) {
         })
     } catch (error) {
         console.error('Ошибка продления подписки:', error)
+        throw error
+    } finally {
+        await db.$disconnect()
+    }
+}
+
+export async function allUser(offset, ITEMS_PER_PAGE) {
+    try {
+        await db.$connect()
+        return await db.user.findMany({
+            skip: offset,
+            take: ITEMS_PER_PAGE,
+        })
+    } catch (error) {
+        console.error('Ошибка получения списка пользователей:', error)
+        throw error
+    } finally {
+        await db.$disconnect()
+    }
+}
+
+export async function countUser() {
+    try {
+        await db.$connect()
+        return await db.user.count()
+    } catch (error) {
+        console.error('Ошибка получения количества пользователей:', error)
         throw error
     } finally {
         await db.$disconnect()
