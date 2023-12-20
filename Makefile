@@ -1,9 +1,9 @@
 build:
 	docker build -t trnsbot .
 run:
-	docker run -d -p 3000:3000 -v /root/database:/app/src/database --restart unless-stopped --name trnsbot trnsbot
+	docker run -d -p 4000:3000 -v /root/database:/app/src/database --restart unless-stopped --name trnsbot trnsbot
 home-run:
-	docker run -d -p 3000:3000 -v C:/database:/app/src/database --restart unless-stopped --name trnsbot trnsbot
+	docker run -d -p 4000:3000 -v C:/database:/app/src/database --restart unless-stopped --name trnsbot trnsbot
 stop:
 	docker stop trnsbot
 update:
