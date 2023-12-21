@@ -24,11 +24,13 @@ const startMessage = `🎙️ Привет! Я твой универсальны
 
 ⚙ А еще ты можешь выбрать голос озвучки в меню
 
-🎁 В подарок Бесплатный доступ к боту на 3 дня!
+🔘 Теперь я могу переводить в текст "кружки" (видеосообщения)
 
-💳 Если понравится, сможешь оформить подписку всего за ${price}₽/мес.
+🎁 Вы можете бесплатно пользоваться ботом 24 часа.
 
-Давай начнем общение – просто отправь мне свой голос или текст! 🤖💬🔊`
+🤖 Сейчас оформить подписку на бота невозможно. Бот предоставляется в подарок к нашему основному боту
+@ChatGPT\_VoiceAssistant\_Bot 
+Вы можете оформить подписку на наш основной бот и пользоваться этим ботом бесплатно`
 
 export const commands = [
     { command: '/start', description: '▶️ Перезапустить бота' },
@@ -46,17 +48,16 @@ export const handleCommandProfile = async (ctx) => {
     const user = await profileUser(ctx.from.id, ctx.from.first_name)
     const checkSub = await checkSubscribe(ctx.from.id, ctx.from.first_name)
     let subscribe = 'Не активна 😢'
-    let buttonText = 'Оформить'
     if (checkSub) {
         const checkTime = Number(user.subscribe) - nowTimeSecond()
         subscribe = convertSeconds(checkTime)
-        buttonText = 'Продлить'
     }
     await ctx.reply(`👤 Профиль:
 
 ID: ${user.telegramId}
 Имя: ${user.name}
-Подписка: ${subscribe}`,Markup.inlineKeyboard([Markup.button.callback(`💳 ${buttonText} подписку — за ${price}₽`, 'pay')]))
+Подписка: ${subscribe}`,
+        Markup.inlineKeyboard([Markup.button.callback(`💳 Подробнее о подписке`, 'plan')]))
 }
 
 export const handleCommandVoice = async(ctx) =>  {

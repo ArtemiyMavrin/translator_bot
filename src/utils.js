@@ -34,16 +34,6 @@ export function dayToSeconds(days) {
     return days * 24 * 60 * 60
 }
 
-export function subscribeDay(totalSeconds) {
-    const now = nowTimeSecond()
-    if(totalSeconds > now) {
-        const day = Math.floor((Number(totalSeconds) - now) / (60 * 60 * 24))
-        return `✅ ${day}д.`
-    } else {
-        return '❌'
-    }
-}
-
 export async function replaySubscribe(ctx) {
     return await ctx.replyWithMarkdown(`*Бот не доступен*
     
