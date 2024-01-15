@@ -31,5 +31,5 @@ export const handlePlan = async (ctx) => {
 💔 Отказ от подписки в любой момент.
 
 ⚡️ Подписывайтесь сейчас и откройте мир удобства и эффективности с нашим телеграмм-ботом! 💫💬`,
-        Markup.inlineKeyboard([Markup.button.callback(`💳 ${buttonText} подписку — за ${price}₽`, 'pay')]))
+        Markup.inlineKeyboard([Markup.button.callback(`💳 ${buttonText} подписку — за ${price}₽`, 'selectPay')]))
 }

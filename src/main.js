@@ -1,16 +1,29 @@
 import { Telegraf, session } from 'telegraf'
+import { Stage } from 'telegraf/scenes'
 import { message } from 'telegraf/filters'
 import config  from 'config'
 import process from 'nodemon'
 import { handlePlan, handleSelectedVoice } from './handles/actions.js'
 import { commands, handleCommandProfile, handleCommandStart, handleCommandVoice } from './handles/commands.js'
 import { handleMessageText, handleMessageVideoNote, handleMessageVoice } from './handles/messages.js'
-import { handlePay, preCheckoutQuery, successfulPayment } from './handles/pay.js'
+import {
+    handleCardToCard,
+    handleCardToCardOK,
+    handlePayGetPhone,
+    handleSelectPay,
+    preCheckoutQuery,
+    successfulPayment
+} from './handles/pay.js'
 import { callbackUsers, handleAllUser, handleCommandAdmin } from "./admin.js"
+
+import { scene } from './scene.js'
+const phoneScene = scene.PhoneScene()
+const stage = new Stage([phoneScene])
 
 const bot = new Telegraf(config.get('TELEGRAM_TOKEN'))
 
 bot.use(session())
+bot.use(stage.middleware())
 
 bot.telegram.setMyCommands(commands)
 
@@ -28,7 +41,12 @@ bot.action('madirus', handleSelectedVoice('madirus','👨🏼 Мадирос',))
 
 bot.action('profile', handleCommandProfile)
 
-bot.action('pay', handlePay)
+bot.action('plan', handlePlan)
+bot.action('selectPay', handleSelectPay)
+bot.action('pay', handlePayGetPhone)
+bot.action('cardToCard', handleCardToCard)
+bot.action('cardToCardOK', handleCardToCardOK)
+
 bot.on('pre_checkout_query', preCheckoutQuery)
 bot.on('successful_payment', successfulPayment)
 

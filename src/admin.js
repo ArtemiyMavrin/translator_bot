@@ -143,4 +143,30 @@ export const callbackUsers = async (ctx) => {
         await adminPanel(ctx)
     }
 
+    if (data.startsWith('sendPayGood:')) {
+        try {
+            const idSend = data.split(':')[1]
+            await ctx.telegram.sendMessage(idSend,`*Подписка успешно продлена*
+            
+Спасибо за оплату подписки\\.  
+Вы можете продолжить пользоваться ботом`,
+                {
+                    parse_mode: "MarkdownV2",
+                    reply_markup: {
+                        inline_keyboard: [
+                            [{
+                                text: "👤 Открыть профиль",
+                                callback_data: `profile`
+                            }]
+                        ]
+                    }
+                })
+            await ctx.answerCbQuery('Подписка успешно продлена.')
+            await ctx.deleteMessage()
+        } catch (error) {
+            console.error('Ошибка при обработке sendPayGood:', error)
+            await ctx.answerCbQuery('Произошла ошибка при продлении подписки.');
+        }
+    }
+
 }
