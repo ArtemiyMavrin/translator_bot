@@ -1,17 +1,68 @@
 import config from 'config'
-import { checkSubscribe } from '../db.js'
+import { allLanguage, checkSubscribe, allVoice, allCharacter, updateSettingUser } from '../db.js'
 import { Markup } from 'telegraf'
 
 const price = config.get('ONE_PRICE')
 
 
 
-export const handleSelectedVoice = (voice,voiceName) => async (ctx) => {
-    ctx.session ??= { voice: '' }
-    ctx.session.voice = voice
-    const selectVoiceMessage = `Отлично! Твой выбор — ${voiceName}!`
-    await ctx.answerCbQuery(selectVoiceMessage)
-    await ctx.reply(selectVoiceMessage)
+export const handleSelectLanguage = async (ctx) => {
+    try {
+        const languageList = await allLanguage()
+
+        const selectLanguageKeyboard = Markup.inlineKeyboard(
+            languageList.map((voice) => [
+                Markup.button.callback(
+                    voice.language,
+                    `selectVoice:${voice.languageCode}`
+                ),
+            ])
+        )
+        await ctx.deleteMessage()
+        await ctx.replyWithMarkdown(`*Для начала выбери язык озвучки:*`,selectLanguageKeyboard)
+    } catch (e) {
+        console.log('Не удалось получить список языков', e)
+    }
+}
+
+export const handleVoiceSelect = async (languageCode, ctx) => {
+    try {
+        const voiceList = await allVoice(languageCode)
+        const selectVoiceKeyboard = Markup.inlineKeyboard(
+            voiceList.map((voice) => [
+                Markup.button.callback(
+                    `${voice.voice} (${voice.gender})`,
+                    `selectCharacter:${voice.voice}`
+                ),
+            ])
+        )
+        await ctx.deleteMessage()
+        await ctx.replyWithMarkdown(`*Выберите голос:*`, selectVoiceKeyboard)
+    } catch (e) {
+        console.log('Не удалось получить список голосов', e)
+    }
+}
+
+export const handleCharacterSelect = async (voice, ctx) => {
+    try {
+        const characterList = await allCharacter(voice)
+        if (!characterList[0]) {
+            await updateSettingUser(voice, null, ctx)
+            return
+        }
+        const selectVoiceKeyboard = Markup.inlineKeyboard(
+            characterList.map((character) => [
+                Markup.button.callback(
+                    character.name,
+                    `updateSettingUser:${voice}:${character.role}`
+                ),
+            ])
+        )
+        await ctx.deleteMessage()
+        await ctx.replyWithMarkdown(`*Выберите эмоциональнве настройки для глоса:*`, selectVoiceKeyboard)
+    } catch (e) {
+        console.log('Не удалось получить список голосов', e)
+    }
 }
 
 export const handlePlan = async (ctx) => {

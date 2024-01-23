@@ -3,7 +3,7 @@ import { Stage } from 'telegraf/scenes'
 import { message } from 'telegraf/filters'
 import config  from 'config'
 import process from 'nodemon'
-import { handlePlan, handleSelectedVoice } from './handles/actions.js'
+import { handlePlan, handleSelectLanguage } from './handles/actions.js'
 import { commands, handleCommandProfile, handleCommandStart, handleCommandVoice } from './handles/commands.js'
 import { handleMessageText, handleMessageVideoNote, handleMessageVoice } from './handles/messages.js'
 import {
@@ -14,7 +14,8 @@ import {
     preCheckoutQuery,
     successfulPayment
 } from './handles/pay.js'
-import { callbackUsers, handleAllUser, handleCommandAdmin } from "./admin.js"
+import { handleCommandAdmin, handleCommandCreateNewVoice } from "./admin.js"
+import { callback } from './callback.js'
 
 import { scene } from './scene.js'
 const phoneScene = scene.PhoneScene()
@@ -32,12 +33,10 @@ bot.command('profile', handleCommandProfile)
 bot.command('voice', handleCommandVoice)
 bot.command('plan', handlePlan)
 bot.command('admin', handleCommandAdmin)
+bot.command('create', handleCommandCreateNewVoice)
 
-bot.action('ermil', handleSelectedVoice('ermil','👨🏼 Эмиль',))
-bot.action('alena', handleSelectedVoice('alena','👩🏼 Алёна',))
-bot.action('filipp', handleSelectedVoice('filipp','👨🏼 Филипп',))
-bot.action('jane', handleSelectedVoice('jane','👩🏼 Джейн',))
-bot.action('madirus', handleSelectedVoice('madirus','👨🏼 Мадирос',))
+bot.action('selectLanguage', handleSelectLanguage)
+bot.action('speed')
 
 bot.action('profile', handleCommandProfile)
 
@@ -56,7 +55,7 @@ bot.on(message('photo'), handleMessageText)
 bot.on(message('video_note'), handleMessageVideoNote)
 bot.on(message('sticker'), ctx => {ctx.reply('Прикольный стикер')})
 
-bot.on('callback_query', callbackUsers)
+bot.on('callback_query', callback)
 
 bot.launch()
 

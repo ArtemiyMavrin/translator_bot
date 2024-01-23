@@ -119,15 +119,15 @@ class SpeechKit {
         }
     }
 
-    async messageToVoice(text,voice) {
+    async messageToVoice(text, voice, character, speed) {
         try {
             const params = new URLSearchParams()
             params.append('text', text)
-            params.append('lang', 'ru-RU')
-            params.append('voice', voice)
+            if (voice) { params.append('voice', voice.toLowerCase()) }
+            if (character) { params.append('emotion', character) }
             params.append('format', 'oggopus')
-            params.append('emotion', 'good')
-            params.append('speed', '1.0')
+            if (speed) { params.append('speed', speed) }
+            console.log(params)
             const response = await axios({
                 method: 'POST',
                 url: this.urlSynthesize,

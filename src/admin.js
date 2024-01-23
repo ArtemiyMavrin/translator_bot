@@ -1,6 +1,6 @@
-import {allUser, countUser, profileUser, subscribePay} from './db.js'
+import {allUser, countUser, createVoice, profileUser, subscribePay} from './db.js'
 import { Markup } from 'telegraf'
-import { subscribeDay } from './utils.js'
+import { subscribeDay, capitalizeFirstLetter } from './utils.js'
 
 const ITEMS_PER_PAGE = 5
 
@@ -13,7 +13,7 @@ const adminKeyboard = Markup.inlineKeyboard([
     ]
 ])
 
-const adminPanel = async (ctx) => {
+export const adminPanel = async (ctx) => {
     const userCount = await countUser()
     await ctx.replyWithMarkdown(`*Админ панель*
     
@@ -24,13 +24,57 @@ const adminPanel = async (ctx) => {
 
 
 export const handleCommandAdmin = async (ctx) => {
-    const profile = await profileUser(ctx.message.from.id, ctx.message.from.first_name)
+    const profile = await profileUser(ctx.message.from.id, ctx.message.from.first_name, `@${ctx.message.from.username}`)
 
     if (profile.role === 'admin') {
         await adminPanel(ctx)
     } else {
         await ctx.reply('Команда недоступна')
     }
+}
+
+function parseCharacterRoles(characters) {
+    const characterArray = characters.split(', ')
+    const characterRoles = []
+    for (const character of characterArray) {
+        const [name, value] = character.split(' — ')
+        characterRoles.push({ name, value })
+    }
+    return characterRoles
+}
+
+export const handleCommandCreateNewVoice = async (ctx) => {
+    try{
+        const profile = await profileUser(ctx.message.from.id, ctx.message.from.first_name, `@${ctx.message.from.username}`)
+
+        if (profile.role === 'admin') {
+            const [command, languageCode, languageName, voiceName, gender, ...characterRolesArray] = ctx.message.text.split(/\s+/)
+            const characters = characterRolesArray.join(' ')
+            const characterRoles = characters ? parseCharacterRoles(characters) : []
+            const voice = capitalizeFirstLetter(voiceName)
+            const language = capitalizeFirstLetter(languageName)
+
+            await createVoice(voice,language,languageCode,gender,characterRoles)
+
+            ctx.replyWithMarkdown(`*Добавлен новый голос*\:
+        
+*Voice*\: ${voice}
+*Language*\: ${language}
+*Language Code*\: ${languageCode}
+*Gender*\: ${gender}
+*Character Roles*\: 
+    ${characterRoles[0]?.name||''}
+    ${characterRoles[1]?.name||''}
+    ${characterRoles[2]?.name||''}`)
+        } else {
+            await ctx.reply('Команда недоступна')
+            return
+        }
+    } catch (e) {
+        await ctx.reply('Ошибка добавления голоса')
+        console.log(e)
+    }
+
 }
 
 export const handleAllUser = async (ctx, page = 1) => {
@@ -79,94 +123,6 @@ export const handleAllUser = async (ctx, page = 1) => {
         })
     } catch (e) {
         console.error('Ошибка получения списка пользователй: ', e.message)
-    }
-
-}
-
-export const callbackUsers = async (ctx) => {
-    const data = ctx.callbackQuery.data
-    try {
-        if (data.startsWith('info:')) {
-            const userId = Number(data.split(':')[1])
-            const page = data.split(':')[2]
-            const user = await profileUser(userId)
-            const subscribe = subscribeDay(user.subscribe)
-            const addSubscribeKeyboard = Markup.inlineKeyboard([
-                [
-                    Markup.button.callback('+ 30 дней', `addSub:${user.telegramId}:${user.name}:30`),
-                    Markup.button.callback('+ 90 дней', `addSub:${user.telegramId}:${user.name}:90`),
-                    Markup.button.callback('+ 180 дней', `addSub:${user.telegramId}:${user.name}:180`)
-                ],
-                [
-                    Markup.button.callback('◀️ К списку пользователей', `usersPage:${page}`)
-                ],
-                [
-                    Markup.button.callback('⏪️ Админ панель', `adminPanel`)
-                ]
-            ])
-            const text = `*Пользователь:*
-            
-*ID:* ${user.id}
-*Telegram ID:* \`${user.telegramId}\`
-*Имя:* ${user.name}
-*Роль:* ${user.role}
-*Подписка:* ${subscribe}
-
-Продлить подписку:`
-            await ctx.deleteMessage()
-            ctx.replyWithMarkdown(text, addSubscribeKeyboard)
-        }
-    } catch (e) {
-        console.error('Ошибка получения пользователя: ', e.message)
-    }
-
-    try {
-        if (data.startsWith('addSub:')) {
-            const id = data.split(':')[1]
-            const name = data.split(':')[2]
-            const day = data.split(':')[3]
-            await subscribePay(id,name,day)
-            await ctx.answerCbQuery('Подписка продлена успешно')
-        }
-    } catch (e) {
-        console.error('Ошибка продления подписки: ', e.message)
-        await ctx.answerCbQuery('Ошибка продления подписки')
-    }
-
-    if (data.startsWith('usersPage:')) {
-        const page = parseInt(data.split(':')[1]);
-        await handleAllUser(ctx, page);
-    }
-
-    if (data.startsWith('adminPanel')) {
-        await ctx.deleteMessage()
-        await adminPanel(ctx)
-    }
-
-    if (data.startsWith('sendPayGood:')) {
-        try {
-            const idSend = data.split(':')[1]
-            await ctx.telegram.sendMessage(idSend,`*Подписка успешно продлена*
-            
-Спасибо за оплату подписки\\.  
-Вы можете продолжить пользоваться ботом`,
-                {
-                    parse_mode: "MarkdownV2",
-                    reply_markup: {
-                        inline_keyboard: [
-                            [{
-                                text: "👤 Открыть профиль",
-                                callback_data: `profile`
-                            }]
-                        ]
-                    }
-                })
-            await ctx.answerCbQuery('Подписка успешно продлена.')
-            await ctx.deleteMessage()
-        } catch (error) {
-            console.error('Ошибка при обработке sendPayGood:', error)
-            await ctx.answerCbQuery('Произошла ошибка при продлении подписки.');
-        }
     }
 
 }

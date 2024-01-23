@@ -17,4 +17,23 @@ model User {
   role String @default("user")
   name  String?
   subscribe BigInt @default(0)
+  tgUser String?
+  voice String?
+  character String?
+}
+
+model Voice {
+  id    Int     @id @default(autoincrement())
+  language String
+  languageCode String
+  voice String @unique
+  gender String?
+  characters Character[]
+}
+
+model Character {
+    id    Int    @id @default(autoincrement())
+    name String @unique
+    role String @unique
+    voices Voice[]
 }

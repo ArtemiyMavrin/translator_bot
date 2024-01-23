@@ -5,15 +5,11 @@ import { Markup } from 'telegraf'
 
 const price = config.get('ONE_PRICE')
 
-const VoiceKeyboard = Markup.inlineKeyboard([
+const SettingsVoiceKeyboard = Markup.inlineKeyboard([
     [
-        Markup.button.callback('👨🏼‍ Эмиль (по умолчанию)', 'ermil')
+        Markup.button.callback('🎤 Настроить голос', 'selectLanguage')
     ],[
-        Markup.button.callback('👩🏼 Алёна', 'alena'),
-        Markup.button.callback('👨🏼 Филипп', 'filipp')
-    ],[
-        Markup.button.callback('👩🏼 Джейн', 'jane'),
-        Markup.button.callback('👨🏼 Мадирос', 'madirus')
+        Markup.button.callback('🎼 Задать скорость озвучки', 'speed')
     ]])
 
 const startMessage = `🎙️ Привет! Я твой универсальный помощник для обмена голосовыми и текстовыми сообщениями. 
@@ -32,7 +28,7 @@ const startMessage = `🎙️ Привет! Я твой универсальны
 
 export const commands = [
     { command: '/start', description: '▶️ Перезапустить бота' },
-    { command: '/voice', description: '🎙️Выбрать голос' },
+    { command: '/voice', description: '🎙️ Настройки озвучки' },
     { command: '/profile', description: '👤 Профиль' },
     { command: '/plan', description: '💳 Подписка' }
 ]
@@ -60,5 +56,12 @@ ID: ${user.telegramId}
 }
 
 export const handleCommandVoice = async(ctx) =>  {
-    const { message_id } = await ctx.reply('Выбери голос озвучки текстовых сообщений',VoiceKeyboard)
+    const { message_id } = await ctx.replyWithMarkdown(`В этом разделе можно настроить:
+    
+*— Голос озвучки*
+*— Его эмоции (амплуа) если они есть*
+*— Скорость озвучки*
+*Эксперементируте!*
+
+По умолчанию выбран голос Алена (русский) скорость 1.0 (средняя скорость человеческой речи)`,SettingsVoiceKeyboard)
 }

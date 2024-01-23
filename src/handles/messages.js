@@ -1,26 +1,27 @@
-import { checkSubscribe } from '../db.js'
+import {checkSubscribe, profileUser} from '../db.js'
 import { replaySubscribe } from '../utils.js'
 import { speechKit } from '../speechkit.js'
 import { mp4 } from '../mp4.js'
 import { removeFile } from '../utils.js'
+import { code } from 'telegraf/format'
 
 export const handleMessageText = async (ctx) => {
     try {
-        ctx.session ??= { voice: 'ermil' }
         const checkPay = await checkSubscribe(ctx.from.id, ctx.from.first_name)
         if(!checkPay) { return replaySubscribe(ctx) }
-        const text = ctx.message.text ?? ctx.message.caption ?? 'Интересно. Но для озвучки мне нужен текст! Я не могу озвучить фотографию'
-        const { message_id } = await ctx.reply('Обработка...', {
+        const user = await profileUser(ctx.from.id, ctx.from.first_name)
+        const text = ctx.message.text ?? ctx.message.caption ?? 'Интересно. Но для озвучки мне нужен текст! Я не могу озвучить это'
+        const { message_id } = await ctx.reply(code('Обработка...'), {
             reply_to_message_id: ctx.message.message_id
         })
-        const voiceMessage = await speechKit.messageToVoice(text, ctx.session.voice)
+        const voiceMessage = await speechKit.messageToVoice(text, user.voice, user.character)
         await ctx.replyWithVoice({ source: voiceMessage }, {
             reply_to_message_id: ctx.message.message_id
         })
         await ctx.deleteMessage(message_id)
     } catch (e) {
         console.log('Ошибка обработки текстового сообщения', e.message)
-        await ctx.reply('Произошла ошибка при обработке текстового сообщения')
+        await ctx.reply(code('Произошла ошибка при обработке текстового сообщения'))
     }
 }
 
@@ -30,7 +31,7 @@ export const handleMessageVoice = async (ctx) => {
         if(!checkPay) { return replaySubscribe(ctx) }
         const voice = await ctx.telegram.getFileLink(ctx.message.voice.file_id)
         const voiceId = String(ctx.message.from.id) + String(ctx.message.message_id)
-        const { message_id } = await ctx.reply('Обработка...', {
+        const { message_id } = await ctx.reply(code('Обработка...'), {
             reply_to_message_id: ctx.message.message_id
         })
         const voiceUrl = await speechKit.uploadUrlVoice(voice, voiceId)
@@ -48,7 +49,7 @@ export const handleMessageVoice = async (ctx) => {
         }
     } catch (e) {
         console.log('Ошибка обработки голосового сообщения', e.message)
-        await ctx.reply('Произошла ошибка при обработке голосового сообщения')
+        await ctx.reply(code('Произошла ошибка при обработке голосового сообщения'))
     }
 }
 
@@ -58,7 +59,7 @@ export const handleMessageVideoNote = async (ctx) => {
         if(!checkPay) { return replaySubscribe(ctx) }
         const video = await ctx.telegram.getFileLink(ctx.message.video_note.file_id)
         const fileId = String(ctx.message.from.id) + String(ctx.message.message_id)
-        const { message_id } = await ctx.reply('Обработка...', {
+        const { message_id } = await ctx.reply(code('Обработка...'), {
             reply_to_message_id: ctx.message.message_id
         })
         const videoUri = await mp4.create(video,fileId)
@@ -80,6 +81,6 @@ export const handleMessageVideoNote = async (ctx) => {
         await removeFile(voiceUri)
     } catch (e) {
         console.log('Ошибка обработки видео сообщения', e.message)
-        await ctx.reply('Произошла ошибка при обработке видео сообщения')
+        await ctx.reply(code('Произошла ошибка при обработке видео сообщения'))
     }
 }

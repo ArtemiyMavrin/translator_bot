@@ -53,3 +53,7 @@ export async function replaySubscribe(ctx) {
         Markup.inlineKeyboard([Markup.button.callback(`💳 Оформить подписку — за ${price}₽`, 'pay')])
     )
 }
+
+export function capitalizeFirstLetter(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
